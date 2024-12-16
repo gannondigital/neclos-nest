@@ -1,0 +1,117 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Part {
+  id  String @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  figureGroups FigureGroup[]
+  // should it have figures
+}
+
+model Figure {
+  id  String @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  group FigureGroup @relation(fields: groupId, references: id)
+  groupId String
+  // should it have part
+  name  String
+  photoUrl  String
+  figureCardId  String @unique
+  figureCard  FigureCard?
+  itemCardIds String[]
+  itemCards ItemCard[]
+  // should probably only ever be one but this keeps it flexible
+  figureAccessories FigureAccessory[]
+  collectedFigures CollectedFigure[]
+}
+
+enum FigureGroupType {
+  CHARACTERS
+  LEVEL
+  CHAPTER
+  AREA
+  VILLAIN
+}
+
+model FigureGroup {
+  id  String @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  type FigureGroupType
+  partId String
+  part Part @relation(fields: partId, references: id)
+  figureIds String[]
+  figures Figure[]
+}
+
+model FigureCard {
+  id  String @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  figureId String  @unique
+  figure  Figure  @relation(fields: figureId, references: id)
+}
+
+model ItemCard {
+  id  String @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  figureId  String
+  figure  Figure @relation(fields: figureId, references: id)
+}
+
+enum FigureAccessoryType {
+  ACCESSORY
+  COMPANION
+  GEM
+}
+
+model FigureAccessory {
+  id  String @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  type  FigureAccessoryType
+  figureId  String
+  figure  Figure @relation(fields: figureId, references: id)
+  collectedFigureAccessories  CollectedFigureAccessory[]
+}
+
+model User {
+  id  String @id @default(uuid())
+  username String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  collectedFigures CollectedFigure[]
+  collectedFigureAccessories CollectedFigureAccessory[]
+}
+
+model CollectedFigure {
+  id  String @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  figureId String
+  figure Figure @relation(fields: figureId, references: id)
+  userId String
+  user  User  @relation(fields: userId, references: id)
+}
+
+model CollectedFigureAccessory {
+  id  String @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  accessoryId String
+  accessory FigureAccessory @relation(fields: accessoryId, references: id)
+  userId String
+  user  User  @relation(fields: userId, references: id)
+}
